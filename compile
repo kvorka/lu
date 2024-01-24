@@ -1,0 +1,16 @@
+#!/bin/bash
+fortran_compiler=gfortran-12
+fortran_optim=Ofast
+fortran_arch=march=native
+
+cpp_compiler=g++-12
+cpp_optim=Ofast
+cpp_arch=march=native
+
+#interface for cpp routines and source files compilation
+$fortran_compiler -$fortran_optim -$fortran_arch -c LUdecomp/Cinterface.f90
+    $cpp_compiler -$cpp_optim -$cpp_arch -c LUdecomp/cpp/*.cpp
+
+#interface for fortran routines and source files compilation
+$fortran_compiler -$fortran_optim -$fortran_arch -c LUdecomp/Finterface.f90
+    $fortran_compiler -$fortran_optim -$fortran_arch -c LUdecomp/f90/*.f90
