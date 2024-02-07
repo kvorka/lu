@@ -8,9 +8,14 @@ cpp_optim=Ofast
 cpp_arch=march=native
 
 #interface for cpp routines and source files compilation
-$fortran_compiler -$fortran_optim -$fortran_arch -c LUdecomp/Cinterface.f90
-    $cpp_compiler -$cpp_optim -$cpp_arch -c LUdecomp/cpp/*.cpp
+$fortran_compiler -$fortran_optim -$fortran_arch -c Cinterface.f90
+    $cpp_compiler -$cpp_optim -$cpp_arch -frename-registers -funroll-loops -c cpp/*.cpp
 
 #interface for fortran routines and source files compilation
-$fortran_compiler -$fortran_optim -$fortran_arch -c LUdecomp/Finterface.f90
-    $fortran_compiler -$fortran_optim -$fortran_arch -c LUdecomp/f90/*.f90
+$fortran_compiler -$fortran_optim -$fortran_arch -c Finterface.f90
+    $fortran_compiler -$fortran_optim -$fortran_arch -c f90/*.f90
+
+#main test code
+$fortran_compiler -$fortran_optim -$fortran_arch -fopenmp *.o test_lu.f90 -o testLU
+
+rm *.o *.mod *.smod
