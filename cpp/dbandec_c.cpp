@@ -1,69 +1,74 @@
 #include <cmath>
 
 extern "C" {
+    
     void dbandec_cpp( const int* n, const int* ld, const int* lu, double *U, double *L, int *I ) {
         
-        const int ldu = *ld + 1 + *lu;
+        const int nc   = *n;
+        const int ldc  = *ld;
+        const int luc  = *lu;
+        const int lduc = *ld + 1 + *lu;
 
         {
-            int k = *ld;
-                
-                for ( int j = 0; j < *ld; j++ ) {
-                    double *Uj = &U[*ld-k+j*(ldu-1)];
+            int k = ldc;
+            
+            for ( int j = 0; j < ldc; j++ ) {
+                {
+                    double *Uj = &U[ldc-k-j+j*lduc];
                     
-                        for ( int i = 0; i < *lu+1+j; i++ ) {
-                            Uj[i] = Uj[i+k];
-                        }
+                    for ( int i = 0; i < luc+1+j; i++ ) {
+                        Uj[i] = Uj[i+k];
+                    }
                     
-                    k -= 1;
-                        
-                        Uj = &U[ldu-1-k+j*ldu];
-                        
-                            for ( int i = 0; i < k+1; i++ ) {
-                                Uj[i] = 0;
-                            }
+                    for ( int i = luc+1+j; i < luc+1+j+k; i++) {
+                        Uj[i] = 0;
+                    }
                 }
+                
+                k -= 1;
+            }
         }
         
-        for ( int j = 0; j < *n; j++ ) {
-            const int k = std::min(*ld+j+1, *n);
-            
-            {
-                int    l    = j;
-                double temp = std::abs( U[j*ldu] );
-                        
+        {
+            for ( int j = 0; j < nc; j++ ) {
+                const int k = std::min(ldc+j+1, nc);
+                
+                {
+                    int l = j;
+                    double temp = std::abs( U[j*lduc] );
+                    
                     for ( int i = j+1; i < k; i++) {
-                        if ( std::abs( U[i*ldu] ) > temp ) {
+                        if ( std::abs( U[i*lduc] ) > temp ) {
                             l    = i;
-                            temp = std::abs( U[i*ldu] );
+                            temp = std::abs( U[i*lduc] );
                         }
                     }
-                
-                if (l != j) {
-                    double *Uj1 = &U[j*ldu];
-                    double *Uj2 = &U[l*ldu];
+                    
+                    if (l != j) {
+                        double *Uj1 = &U[j*lduc];
+                        double *Uj2 = &U[l*lduc];
                         
-                        for ( int i = 0; i < ldu; i++ ) {
+                        for ( int i = 0; i < lduc; i++ ) {
                             temp   = Uj1[i];
                             Uj1[i] = Uj2[i];
                             Uj2[i] = temp;
                         }
+                    }
+                    
+                    I[j] = l;
                 }
                 
-                I[j] = l;
-            }
-            
-            for ( int l = j+1; l < k; l++ ) {
-                double       *Uj1 = &U[  l*ldu];
-                const double *Uj2 = &U[1+j*ldu];
-                
-                    const double temp = L[l-1+j*(*ld-1)] = Uj1[0] / Uj2[-1];
-                        
-                        for ( int i = 0; i < ldu-1; i++ ) {
-                            Uj1[i] = Uj1[i+1] - temp * Uj2[i];
-                        }
-                        
-                        Uj1[ldu-1] = 0.;
+                for ( int l = j+1; l < k; l++ ) {
+                    double       *Uj1 = &U[  l*lduc];
+                    const double *Uj2 = &U[1+j*lduc];
+                    const double temp = L[l-1+j*(ldc-1)] = Uj1[0] / Uj2[-1];
+                    
+                    for ( int i = 0; i < lduc-1; i++ ) {
+                        Uj1[i] = Uj1[i+1] - temp * Uj2[i];
+                    }
+                    
+                    Uj1[lduc-1] = 0.;
+                }
             }
         }
     }

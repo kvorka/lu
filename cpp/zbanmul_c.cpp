@@ -1,23 +1,24 @@
 #include <cmath>
 #include <complex>
-
-typedef std::complex<double> dcomplex;
+#include <cstring>
 
 extern "C" {
-    void zbanmul_cpp( const int* n, const int* ld, const int* lu, const double *M, const dcomplex *b, dcomplex *y ) {
+    
+    void zbanmul_cpp( const int* n, const int* ld, const int* lu, const double *M, const std::complex<double> *b, 
+                      std::complex<double> *y ) {
         
-        const int ldu = *ld + 1 + *lu;
-
-        for ( int j = 0; j < *n; j++ ) {
-            y[j] = dcomplex(0., 0.);
-            
-            const double   *Mj = &M[j*ldu];
-            const dcomplex *bj = &b[j];
-                
-                for ( int i = std::max(0,*ld-j); i < std::min(ldu,*ld+*n-j); i++) {
-                    y[j] += Mj[i] * bj[i-*ld];
-                }
+        const int nc   = *n;
+        const int ldc  = *ld;
+        const int lduc = *ld + 1 + *lu;
+        
+        memset(&y[0], 0, nc * sizeof(std::complex<double>));
+        
+        for ( int j = 0; j < nc; j++ ) {
+            for ( int i = std::max(0,ldc-j); i < std::min(lduc,ldc+nc-j); i++) {
+                y[j] += M[i+j*lduc] * b[i+j-ldc];
+            }
         }
+        
     }
     
 }
